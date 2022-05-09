@@ -32,11 +32,13 @@ class ScreenRecorder
         $this->options=[
             '-f'=>'gdigrab',
             '-show_region'=>'1',
-            '-framerate'=>'6',
+            '-framerate'=>'60',
             '-video_size'=>'1080x768',
             '-offset_x'=>'0',
             '-offset_y'=>'0',
             '-i'=>'desktop',
+            '-b:v'=>'8000k',
+            '-vcodec'=>'h264',
             '-y'=>'',
         ];
     }
@@ -50,13 +52,16 @@ class ScreenRecorder
     public function setOptions(array $options=[])
     {
         $arguments=array_merge($this->options,$options);
-        $argumentsForBinary=[];
+        $this->command=[$this->binary];
         foreach ($arguments as $option=>$value)
         {
             $argumentsForBinary[]=' '.trim($option).' '.trim($value);
+            if (!empty($option))
+                $this->command[]=trim($option);
+            if ($value !== '')
+                $this->command[]=trim($value);
         }
         $this->options=$arguments;
-        $this->command=$this->binary.implode(" ",$argumentsForBinary);
     }
 
     /**
@@ -88,7 +93,7 @@ class ScreenRecorder
     {
         $this->pathToSaveVideo=$pathToSaveVideo?$pathToSaveVideo.(strstr($pathToSaveVideo,'.flv')?'':'.flv'):$this->pathToSaveVideo;
         $this->deleteFileIfExist($this->pathToSaveVideo);
-        $this->setOptions([''=>$this->pathToSaveVideo]);
+        $this->setOptions([$this->pathToSaveVideo]);
         $this->process=new Process($this->command);
         $this->process->start();
         sleep($sleep);
@@ -141,7 +146,7 @@ class ScreenRecorder
     private function setBinaryForCurrentOs()
     {
         $ds=DIRECTORY_SEPARATOR;
-        if(stristr(PHP_OS, 'windows'))
+        if(strcasecmp(substr(PHP_OS, 0, 3), 'WIN') == 0)
         {
             $this->setBinary(__DIR__.$ds."bin".$ds."ffmpegWindows.exe");
         }elseif(stristr(PHP_OS, 'darwin'))
@@ -196,7 +201,7 @@ class ScreenRecorder
      */
     private function abortIfBinaryHasProblems()
     {
-        $process=new Process($this->binary.' -version');
+        $process=new Process([$this->binary, '-version']);
         $process->start();
         $process->wait();
         $output=$process->getOutput();
