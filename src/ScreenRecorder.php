@@ -34,6 +34,7 @@ class ScreenRecorder
             '-show_region'=>'1',
             '-draw_mouse'=>'1',
             '-framerate'=>'60',
+            '-video_size'=>'1080x768',
             '-offset_x'=>'0',
             '-offset_y'=>'0',
             '-i'=>'desktop',
@@ -78,6 +79,16 @@ class ScreenRecorder
             throw new \Exception("please provide valid width or height");
         }
         $this->setOptions(['-video_size'=>$width.'x'.$height]);
+    }
+
+    /**
+     * set the capture size to full screen
+     * @throws \Exception
+     * @author Jugal Kariya <jugalkariya@gmail.com>
+     */
+    public function setFullScreenCapture()
+    {
+        unset($this->options['-video_size']);
     }
 
     /**
